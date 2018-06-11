@@ -9,8 +9,9 @@ fn main() {
 #[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
+    use conrod;
     use conrod::backend::glium::glium::{self, Surface};
-    use conrod::{self, widget, Colorable, Positionable, Widget};
+    use std;
 
     pub fn main() {
         const WIDTH: u32 = 1280;
@@ -42,9 +43,8 @@ mod feature {
         // The image map describing each of our widget->image_mappings (in our case, none).
         let image_map = conrod::image::Map::<glium::texture::Texture2d>::new();
 
-        // Generate the widget identifiers.
-        widget_ids!( struct Ids { text } );
-        let ids = Ids::new(ui.widget_id_generator());
+        // Instantiate the generated list of widget identifiers.
+        let ids = &mut Ids::new(ui.widget_id_generator());
 
         let mut events = Vec::new();
 
@@ -89,15 +89,13 @@ mod feature {
                     Some(input) => input,
                 };
 
-                // Set the widgets.
-                let ui = &mut ui.set_widgets();
+                // Handle the input with the `UI`.
+                ui.handle_event(input);
 
-                // "Hello World!" in the middle of the screen.
-                widget::Text::new("Hello World!")
-                    .middle_of(ui.window)
-                    .color(conrod::color::WHITE)
-                    .font_size(32)
-                    .set(ids.text, ui);
+                // Instantiate all widgets in the GUI.
+
+                // Set the widgets.
+                set_widgets(ui.set_widgets(), ids);
             }
 
             // Draw the `Ui` if it has changed.
@@ -110,6 +108,45 @@ mod feature {
             }
         }
     }
+
+    // Draw the Ui.
+    fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids) {
+        use conrod::{color, widget, Colorable, Labelable, Positionable, Sizeable, Widget};
+
+        // Construct our main `Canvas` tree
+        widget::Canvas::new()
+            .flow_left(&[
+                (
+                    ids.left_column,
+                    widget::Canvas::new().color(color::BLACK).pad(10.0),
+                ),
+                (ids.right_column, widget::Canvas::new().color(color::WHITE)),
+            ])
+            .set(ids.master, ui);
+
+        // "Viewing System!" in the middle of the left column.
+        widget::Text::new("Viewing System")
+            .middle_of(ids.left_column)
+            .color(color::WHITE)
+            .font_size(32)
+            .set(ids.text_view, ui);
+
+        widget::Text::new("Hello, conrod!")
+            .middle_of(ids.right_column)
+            .color(color::BLACK)
+            .font_size(32)
+            .set(ids.text_conrod, ui);
+    }
+
+    widget_ids!(
+        struct Ids {
+            master,
+            left_column,
+            right_column,
+            text_view,
+            text_conrod,
+        }
+    );
 }
 
 #[cfg(not(all(feature = "winit", feature = "glium")))]
