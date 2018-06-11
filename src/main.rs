@@ -9,6 +9,8 @@ fn main() {
 #[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
+    extern crate nfd;
+
     use conrod;
     use conrod::backend::glium::glium::{self, Surface};
     use std;
@@ -111,11 +113,13 @@ mod feature {
 
     // Draw the Ui.
     fn set_widgets(ref mut ui: conrod::UiCell, ids: &mut Ids) {
+        use self::nfd::Response;
+
         use conrod::{color, widget, Colorable, Labelable, Positionable, Sizeable, Widget};
 
         // Construct our main `Canvas` tree
         widget::Canvas::new()
-            .flow_left(&[
+            .flow_right(&[
                 (
                     ids.left_column,
                     widget::Canvas::new().color(color::BLACK).pad(10.0),
@@ -136,6 +140,20 @@ mod feature {
             .color(color::BLACK)
             .font_size(32)
             .set(ids.text_conrod, ui);
+
+        for _press in widget::Button::new()
+            .label("Open")
+            .mid_top_of(ids.right_column)
+            .set(ids.button_open, ui)
+        {
+            let result = nfd::open_file_dialog(None, None).unwrap_or_else(|e| panic!(e));
+
+            match result {
+                Response::Okay(file_path) => println!("File Path = {:?}", file_path),
+                Response::OkayMultiple(files) => println!("Files {:?}", files),
+                Response::Cancel => println!("User canceled"),
+            }
+        }
     }
 
     widget_ids!(
@@ -145,6 +163,8 @@ mod feature {
             right_column,
             text_view,
             text_conrod,
+
+            button_open,
         }
     );
 }
