@@ -4,16 +4,20 @@ version = "0.1.0"
 authors = ["Lyuha <lyuha@users.noreply.github.com>"]
 
 [dependencies]
-conrod = "0.60.0"
+conrod = { version = "0.60.0", features = ["winit", "glium"] }
 nfd = "0.0.4"
+find_folder = "0.3.0"
 
 # Optional dependencies and features
 winit = { version = "0.12", optional = true }
 glium = { version = "0.21", optional = true }
 piston2d-graphics = { version = "0.26", optional = true }
+piston_window = { version = "0.80.0", optional = true }
 gfx = { version = "0.17", optional = true }
 gfx_core = { version = "0.8", optional = true }
 
 [features]
-piston = ["piston2d-graphics"]
+default = ["winit", "glium"]
+piston = ["piston2d-graphics", "piston_window"]
 gfx_rs=["gfx","gfx_core"]
+
